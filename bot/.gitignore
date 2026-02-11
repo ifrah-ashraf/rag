@@ -1,0 +1,16 @@
+# Virtual Environment
+bot-env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# VS Code
+.vscode/
+
+# Environment files
+.env
+
+data/
