@@ -1,5 +1,8 @@
 from ingestion.pdf_extractor import extract_pdf_to_json
 from processing.clean_data import process_bronze_to_silver
+import os 
+import re
+
 
 def main():
     
