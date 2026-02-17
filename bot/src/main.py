@@ -1,19 +1,38 @@
-from ingestion.pdf_extractor import extract_pdf_to_json
-from processing.clean_data import process_bronze_to_silver
-import os 
-import re
+import json
+
+from config.config_var import (
+    INPUT_PATH,
+    OUTPUT_CHUNKS_PATH,
+)
+
+from process.chunk import (
+    chunk_docs
+)
 
 
 def main():
-    
-    raw_bronze_path = "data/processed/bronze_output.json"
-    silver_path = "data/processed/silver_output.json"
-    process_bronze_to_silver(raw_bronze_path, silver_path)
-    
-    """ pdf_file = "data/raw/Harman DTS Handbook 2025.pdf"
-    output_file = "data/processed/bronze_ouput.json"
-    extract_pdf_to_json(pdf_file , output_file) """
-    
+    print("Loading input JSON...")
+
+    # ───────── Load cleaned JSON ─────────
+    with open(INPUT_PATH, "r", encoding="utf-8") as f:
+        docs = json.load(f)
+
+    print(f"Loaded {len(docs)} documents")
+
+    # ───────── Run Chunking ─────────
+    print("Running chunking...")
+    chunks = chunk_docs(docs)
+
+    print(f"Created {len(chunks)} chunks")
+
+    # ───────── Save Output ─────────
+    print("Saving chunked output...")
+
+    with open(OUTPUT_CHUNKS_PATH, "w", encoding="utf-8") as f:
+        json.dump(chunks, f, indent=2, ensure_ascii=False)
+
+    print("Chunking completed successfully.")
+
 
 if __name__ == "__main__":
     main()
