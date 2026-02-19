@@ -1,8 +1,9 @@
 # config.py
 
-INPUT_PATH = "data/chunks/chunks_ready.json"
-OUTPUT_CHUNKS_PATH = "data/chunks/chunking.json"
+INPUT_PATH = "data/chunks/chunking.json"
+OUTPUT_CHUNKS_PATH = "data/chunks/embeddings.json"
 OUTPUT_DISCARDED_PATH = "data/chunks/discarded_chunks.json"
+OUTPUT_EMBEDDING_PATH = "data/chunks/embeddings.json"
 
 # Chunking
 CHUNK_SIZE = 450

@@ -1,38 +1,18 @@
-import json
 
-from config.config_var import (
-    INPUT_PATH,
-    OUTPUT_CHUNKS_PATH,
+from llm.rag_query import (
+    rag_query
 )
-
-from process.chunk import (
-    chunk_docs
-)
-
 
 def main():
-    print("Loading input JSON...")
+    queries = [
+        "what is the entertainment budget plans for employee",
+        "are interns allowed for wifi reimbursment"
+    ]
 
-    # ───────── Load cleaned JSON ─────────
-    with open(INPUT_PATH, "r", encoding="utf-8") as f:
-        docs = json.load(f)
+    for q in queries:
+        rag_query(q, verbose=True)
+        print()
+   
 
-    print(f"Loaded {len(docs)} documents")
-
-    # ───────── Run Chunking ─────────
-    print("Running chunking...")
-    chunks = chunk_docs(docs)
-
-    print(f"Created {len(chunks)} chunks")
-
-    # ───────── Save Output ─────────
-    print("Saving chunked output...")
-
-    with open(OUTPUT_CHUNKS_PATH, "w", encoding="utf-8") as f:
-        json.dump(chunks, f, indent=2, ensure_ascii=False)
-
-    print("Chunking completed successfully.")
-
-
-if __name__ == "__main__":
+if __name__ =="__main__":
     main()

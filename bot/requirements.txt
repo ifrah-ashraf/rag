@@ -1,2 +1,5 @@
 PyMuPDF==1.26.7
 langchain-text-splitters
+voyageai
+qdrant-client
+grop
