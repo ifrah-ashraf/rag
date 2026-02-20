@@ -1,18 +1,44 @@
-
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 from llm.rag_query import (
-    rag_query
+    rag_query,
+    embed_query,
+    retrieve_chunks, 
+    ask_llm
 )
 
-def main():
-    queries = [
-        "what is the entertainment budget plans for employee",
-        "are interns allowed for wifi reimbursment"
+app = Flask(__name__)
+CORS(app)
+
+
+@app.route("/ask", methods=["POST"])
+def ask():
+    data = request.get_json()
+    query = data.get("question", "").strip()
+
+    if not query:
+        return jsonify({"error": "No question provided"}), 400
+
+    query_vector = embed_query(query)
+    chunks       = retrieve_chunks(query_vector)
+    answer       = ask_llm(query, chunks)
+
+    references = [
+        {
+            "section":   c["section"],
+            "page":      c["page"],
+            "relevance": c["score"],
+        }
+        for c in chunks
     ]
 
-    for q in queries:
-        rag_query(q, verbose=True)
-        print()
-   
+    return jsonify({
+        "question":   query,
+        "answer":     answer,
+        "references": references,
+    })
+
+
 
 if __name__ =="__main__":
-    main()
+    app.run(debug=True, port=5000)
