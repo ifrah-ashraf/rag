@@ -8,7 +8,6 @@ import voyageai
 from dotenv import load_dotenv
 
 
-# ─────────────────────────────
 # CONFIG
 VOYAGE_MODEL = "voyage-3.5"
 BATCH_SIZE = 64

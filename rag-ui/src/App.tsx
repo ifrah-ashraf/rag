@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 
-const FLASK_URL = "http://localhost:5000/ask";
+const FLASK_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/ask";
 import "./App.css";
 
 function App() {
@@ -9,7 +9,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [refOpen, setRefOpen] = useState(false);
-  const inputRef = useRef(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();

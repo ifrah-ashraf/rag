@@ -23,8 +23,11 @@ TOP_K             = 5
 # ─────────────────────────────────────────────
 # CLIENTS
 # ─────────────────────────────────────────────
+QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
+QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6333"))
+
 voyage = voyageai.Client(api_key=os.getenv("VOYAGE_API_KEY"))
-qdrant = QdrantClient(host="localhost", port=6333)
+qdrant = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
 groq   = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 

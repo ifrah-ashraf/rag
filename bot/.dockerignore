@@ -1,0 +1,18 @@
+# Virtual environment — the Docker image builds its own
+bot-env/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE / editor
+.vscode/
+.idea/
+
+# Env files (secrets are injected via docker-compose)
+.env
+
+# Misc
+*.egg-info/
+.git/

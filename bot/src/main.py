@@ -6,9 +6,13 @@ from llm.rag_query import (
     retrieve_chunks, 
     ask_llm
 )
+from vector_db.qdrant_store import ensure_collection_loaded
 
 app = Flask(__name__)
 CORS(app)
+
+# ── Make sure Qdrant has data before serving any request ───
+ensure_collection_loaded()
 
 
 @app.route("/ask", methods=["POST"])
@@ -41,4 +45,4 @@ def ask():
 
 
 if __name__ =="__main__":
-    app.run(debug=True, port=5000)
+    app.run(host="0.0.0.0", debug=True, port=5000)

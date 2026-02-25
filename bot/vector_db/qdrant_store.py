@@ -1,55 +1,63 @@
-import json
+import os, json, time
 from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance, PointStruct
 from config.config_var import OUTPUT_EMBEDDING_PATH
 
-def store_embeddings_in_qdrant():
-    """Store embeddings from JSON file to Qdrant vector database."""
+QDRANT_HOST     = os.getenv("QDRANT_HOST", "localhost")
+QDRANT_PORT     = int(os.getenv("QDRANT_PORT", "6333"))
+COLLECTION_NAME = "harman_docs"
+
+_client = None
+
+def get_client() -> QdrantClient:
+    global _client
+    if _client is None:
+        _client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
+    return _client
+
+
+def _collection_has_data() -> bool:
     try:
-        # 1. Connect to Qdrant
-        client = QdrantClient(host="localhost", port=6333)
+        return get_client().get_collection(COLLECTION_NAME).points_count > 0
+    except Exception:
+        return False
 
-        # 2. Load embeddings
-        with open(OUTPUT_EMBEDDING_PATH, "r") as f:
-            points_data = json.load(f)
 
-        # 3. Get vector dimension dynamically
-        vector_size = len(points_data[0]["vector"])
+def store_embeddings_in_qdrant():
+    """Load embeddings JSON into Qdrant (recreates the collection)."""
+    with open(OUTPUT_EMBEDDING_PATH) as f:
+        data = json.load(f)
 
-        collection_name = "harman_docs"
+    client = get_client()
+    client.recreate_collection(
+        collection_name=COLLECTION_NAME,
+        vectors_config=VectorParams(size=len(data[0]["vector"]), distance=Distance.COSINE),
+    )
+    client.upsert(
+        collection_name=COLLECTION_NAME,
+        points=[PointStruct(id=d["id"], vector=d["vector"], payload=d["payload"]) for d in data],
+    )
+    print(f"[qdrant] Stored {len(data)} embeddings.")
 
-        # 4. Create collection (if not exists)
-        client.recreate_collection(
-            collection_name=collection_name,
-            vectors_config=VectorParams(
-                size=vector_size,
-                distance=Distance.COSINE
-            )
-        )
 
-        # 5. Convert to Qdrant PointStruct format
-        points = []
+def ensure_collection_loaded(max_retries=10, delay=3):
+    """Wait for Qdrant, then load embeddings if the collection is empty."""
+    # wait for qdrant to be reachable
+    for attempt in range(1, max_retries + 1):
+        try:
+            get_client().get_collections()
+            break
+        except Exception as e:
+            print(f"[startup] Qdrant not ready ({attempt}/{max_retries}): {e}")
+            time.sleep(delay)
+    else:
+        raise RuntimeError(f"Qdrant unreachable after {max_retries} attempts")
 
-        for item in points_data:
-            points.append(
-                PointStruct(
-                    id=item["id"],
-                    vector=item["vector"],
-                    payload=item["payload"]
-                )
-            )
+    # skip if already populated
+    if _collection_has_data():
+        cnt = get_client().get_collection(COLLECTION_NAME).points_count
+        print(f"[startup] '{COLLECTION_NAME}' has {cnt} points — skipping load.")
+        return
 
-        # 6. Upload to Qdrant
-        client.upsert(
-            collection_name=collection_name,
-            points=points
-        )
-
-        print("Successfully stored embeddings in Qdrant.")
-
-    except FileNotFoundError as e:
-        print(f"Error: Embedding file not found - {e}")
-    except json.JSONDecodeError as e:
-        print(f"Error: Invalid JSON format - {e}")
-    except Exception as e:
-        print(f"Error: Failed to store embeddings in Qdrant - {e}")
+    print(f"[startup] Loading embeddings into '{COLLECTION_NAME}' ...")
+    store_embeddings_in_qdrant()
